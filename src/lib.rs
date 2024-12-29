@@ -12,15 +12,15 @@ pub extern "system" fn Load() {}
 pub extern "system" fn Dispose() {}
 
 #[no_mangle]
-pub extern "system" fn SetVehicleSpec(spec: VehicleSpec) {}
+pub extern "system" fn SetVehicleSpec(_spec: VehicleSpec) {}
 // Called when the game is started
 #[no_mangle]
-pub extern "system" fn Initialize(brake: HandleInitialPosition) {}
+pub extern "system" fn Initialize(_brake: HandleInitialPosition) {}
 #[no_mangle]
 pub extern "system" fn Elapse(
-    state: VehicleState,
-    panel: &mut [c_int; 256],
-    sound: &mut [c_int; 256],
+    _state: VehicleState,
+    _panel: &mut [c_int; 256],
+    _sound: &mut [c_int; 256],
 ) -> Handles {
     Handles {
         power: NotchPosition::NEUTRAL,
@@ -30,22 +30,22 @@ pub extern "system" fn Elapse(
     }
 }
 #[no_mangle]
-pub extern "system" fn SetPower(power: c_int) {}
+pub extern "system" fn SetPower(_power: c_int) {}
 #[no_mangle]
-pub extern "system" fn SetBrake(brake: NotchPosition) {}
+pub extern "system" fn SetBrake(_brake: NotchPosition) {}
 #[no_mangle]
-pub extern "system" fn SetReverser(reverser: ReverserPosition) {}
+pub extern "system" fn SetReverser(_reverser: ReverserPosition) {}
 #[no_mangle]
-pub extern "system" fn KeyDown(key: Key) {}
+pub extern "system" fn KeyDown(_key: Key) {}
 #[no_mangle]
 pub extern "system" fn KeyUp(key: Key) {}
 #[no_mangle]
-pub extern "system" fn HornBlow(horn: Horn) {}
+pub extern "system" fn HornBlow(_horn: Horn) {}
 #[no_mangle]
 pub extern "system" fn DoorOpen() {}
 #[no_mangle]
 pub extern "system" fn DoorClose() {}
 #[no_mangle]
-pub extern "system" fn SetSignal(signal: c_int) {}
+pub extern "system" fn SetSignal(_signal: c_int) {}
 #[no_mangle]
-pub extern "system" fn SetBeaconData(beacon: Beacon) {}
+pub extern "system" fn SetBeaconData(_beacon: Beacon) {}

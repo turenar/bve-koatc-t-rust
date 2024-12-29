@@ -1,8 +1,14 @@
+use crate::bve::unit::{Length, Time};
 use std::ffi::c_double;
 use std::ffi::c_float;
 use std::ffi::c_int;
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct BeaconType(pub u32);
+#[derive(Debug)]
 pub struct PanelId(pub u8);
+#[derive(Debug)]
 pub struct SoundId(pub u8);
 #[repr(C)]
 pub enum Key {
@@ -83,7 +89,7 @@ pub struct VehicleSpec {
 pub struct VehicleState {
     location: c_double,
     speed: c_float,
-    time: c_int,
+    time: Time<c_int>,
     bc_pressure: Pressure,
     mr_pressure: Pressure,
     er_pressure: Pressure,
@@ -94,15 +100,15 @@ pub struct VehicleState {
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct Pressure(pub c_float);
+pub struct Pressure(pub c_int);
 
 // Received Data from Beacon
 #[repr(C)]
 #[derive(Debug)]
 pub struct Beacon {
-    pub beacon_type: c_int,
+    pub beacon_type: BeaconType,
     pub signal: c_int,
-    pub distance: c_float,
+    pub distance: Length<c_float>,
     pub optional: c_int,
 }
 #[repr(C)]
