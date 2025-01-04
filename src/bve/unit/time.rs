@@ -1,15 +1,15 @@
-use num_traits::{cast, Num, NumCast};
+use num_traits::{cast, AsPrimitive, Num, NumCast};
 use std::ops::{Add, Sub};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
 pub struct Time<T>(pub(super) T)
 where
-    T: Num + Copy + NumCast + PartialOrd;
+    T: 'static + Num + Copy + NumCast + PartialOrd;
 
 impl<T> Time<T>
 where
-    T: Num + Copy + NumCast + PartialOrd,
+    T: 'static + Num + Copy + NumCast + PartialOrd,
 {
     pub(super) fn raw_to_second() -> T {
         cast(1000).unwrap()
@@ -32,10 +32,16 @@ where
     pub fn as_milliseconds(&self) -> T {
         self.0
     }
+    pub fn as_<U>(&self) -> Time<U>
+    where
+        U: Num + Copy + NumCast + PartialOrd + AsPrimitive<T>,
+    {
+        Time(cast(self.0).unwrap())
+    }
 }
 impl<T> Add for Time<T>
 where
-    T: Num + Copy + NumCast + PartialOrd,
+    T: 'static + Num + Copy + NumCast + PartialOrd,
 {
     type Output = Self;
 
@@ -45,7 +51,7 @@ where
 }
 impl<T> Sub for Time<T>
 where
-    T: Num + Copy + NumCast + PartialOrd,
+    T: 'static + Num + Copy + NumCast + PartialOrd,
 {
     type Output = Self;
 
@@ -74,8 +80,22 @@ mod tests {
         assert_eq!(Time::hours(4), Time::seconds(4 * 60 * 60));
     }
     #[test]
+    fn into() {
+        assert_eq!(Time::milliseconds(1), Time::milliseconds(1.).as_());
+        assert_eq!(Time::milliseconds(1), Time::milliseconds(1.5).as_());
+        assert_eq!(Time::milliseconds(1), Time::milliseconds(1.001).as_());
+        assert_eq!(Time::milliseconds(1.), Time::milliseconds(1).as_());
+        assert_eq!(Time::milliseconds(10), Time::milliseconds(10).as_());
+        assert_eq!(Time::milliseconds(100), Time::milliseconds(100).as_());
+    }
+    #[test]
     fn add() {
         assert_eq!(Time::seconds(35), Time::seconds(10) + Time::seconds(25));
         assert_eq!(Time::minutes(1.), Time::seconds(20.) + Time::seconds(40.))
+    }
+    #[test]
+    fn sub() {
+        assert_eq!(Time::seconds(-15), Time::seconds(10) - Time::seconds(25));
+        assert_eq!(Time::minutes(1.5), Time::minutes(2.) - Time::minutes(0.5))
     }
 }

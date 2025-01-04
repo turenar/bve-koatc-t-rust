@@ -1,6 +1,6 @@
 use crate::bve::unit::velocity::Velocity;
 use crate::bve::unit::Time;
-use num_traits::{cast, Num, NumCast};
+use num_traits::{cast, AsPrimitive, Num, NumCast};
 use std::fmt::{Debug, Formatter};
 use std::ops::{Add, Div, Sub};
 
@@ -8,7 +8,7 @@ use std::ops::{Add, Div, Sub};
 #[derive(Copy, Clone, PartialOrd, PartialEq)]
 pub struct Length<T>(pub(super) T)
 where
-    T: Num + Copy + NumCast + PartialOrd;
+    T: 'static + Num + Copy + NumCast + PartialOrd;
 impl<T> Length<T>
 where
     T: Num + Copy + NumCast + PartialOrd,
@@ -37,29 +37,25 @@ where
     pub fn as_millimeters(&self) -> T {
         self.0
     }
+    pub fn as_<U>(&self) -> Length<U>
+    where
+        U: Num + Copy + NumCast + PartialOrd + AsPrimitive<T>,
+    {
+        Length(cast(self.0).unwrap())
+    }
 }
 impl<T> Debug for Length<T>
 where
-    T: Num + Copy + NumCast + PartialOrd + Debug,
+    T: 'static + Num + Copy + NumCast + PartialOrd + Debug,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}m", self.as_meters())
     }
 }
-impl<'a, T, U> From<&'a Length<T>> for Length<U>
-where
-    T: Num + Copy + NumCast + PartialOrd,
-    U: Num + Copy + NumCast + PartialOrd + TryFrom<T>,
-    <U as TryFrom<T>>::Error: Debug,
-{
-    fn from(value: &'a Length<T>) -> Self {
-        Self(value.0.try_into().unwrap())
-    }
-}
 
 impl<T> Add for Length<T>
 where
-    T: Num + Copy + NumCast + PartialOrd,
+    T: 'static + Num + Copy + NumCast + PartialOrd,
 {
     type Output = Self;
 
@@ -69,7 +65,7 @@ where
 }
 impl<T> Sub for Length<T>
 where
-    T: Num + Copy + NumCast + PartialOrd,
+    T: 'static + Num + Copy + NumCast + PartialOrd,
 {
     type Output = Self;
 
@@ -79,12 +75,14 @@ where
 }
 impl<T> Div<Time<T>> for Length<T>
 where
-    T: Num + Copy + NumCast + PartialOrd,
+    T: 'static + Num + Copy + NumCast + PartialOrd,
 {
-    type Output = Velocity<T>;
+    type Output = Velocity;
 
     fn div(self, rhs: Time<T>) -> Self::Output {
-        Velocity(self.0 / rhs.0)
+        let left: f64 = cast(self.0).unwrap();
+        let right: f64 = cast(rhs.0).unwrap();
+        Velocity(left / right)
     }
 }
 #[cfg(test)]
@@ -116,7 +114,15 @@ mod tests {
         assert_eq!(0.01, Length::millimeters(10.).as_meters());
         assert_eq!(0.000_01, Length::millimeters(10.).as_kilometers());
     }
-
+    #[test]
+    fn into() {
+        assert_eq!(Length::millimeters(1), Length::millimeters(1.).as_());
+        assert_eq!(Length::millimeters(1), Length::millimeters(1.5).as_());
+        assert_eq!(Length::millimeters(1), Length::millimeters(1.001).as_());
+        assert_eq!(Length::millimeters(1.), Length::millimeters(1).as_());
+        assert_eq!(Length::millimeters(10), Length::millimeters(10).as_());
+        assert_eq!(Length::millimeters(100), Length::millimeters(100).as_());
+    }
     #[test]
     fn unit() {
         assert_eq!(Length::kilometers(1), Length::millimeters(1_000_000));
